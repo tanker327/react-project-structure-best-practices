@@ -12,9 +12,18 @@ This repository contains a complete React TypeScript project architecture guide 
 - **Type-safe API integration** with Zod validation
 - **Feature-based organization** for scalable development
 
-## 📚 Documentation
+## 📚 Complete Documentation Suite
 
-- **[📖 Complete Architecture Guide](./docs/react-project-architecture-doc.md)** - Detailed documentation covering folder structure, patterns, and best practices
+### 📖 Main Overview
+- **[React Project Architecture Guide](./docs/react-project-architecture-doc.md)** - Complete overview of the entire architecture, folder structure, and core principles
+
+### 🔍 Specialized Guides
+Each guide deep-dives into specific aspects of the architecture:
+
+- **[UI Layer Architecture](./docs/pages-vs-features-vs-components-guide.md)** - Three-layer UI structure (Pages → Features → Components) with clear boundaries and decision matrices
+- **[Services Layer Guide](./docs/services-layer-guide.md)** - API abstraction patterns, service architecture, and HTTP communication best practices
+- **[Types & Schemas Organization](./docs/types-schemas-guide.md)** - TypeScript types and Zod schema organization, validation strategies
+- **[App & Ecosystem Setup](./docs/app-ecosystem-docs.md)** - Zedux ecosystem configuration, plugins, dependency injection, and global state management
 
 ## 🏗️ Architecture Highlights
 
@@ -65,4 +74,3 @@ src/
 ## 📝 License
 
 This project is open source and available under the [LICENSE](LICENSE) file. 
-
