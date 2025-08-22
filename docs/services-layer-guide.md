@@ -8,20 +8,20 @@ The services layer creates a **centralized API abstraction layer** that separate
 
 ```
 services/
-├── api/                    # Core API infrastructure
-│   ├── client.ts          # Axios configuration & HTTP methods
-│   ├── endpoints.ts       # API endpoint constants
-│   ├── interceptors.ts    # Request/response interceptors
-│   ├── errorHandler.ts    # Centralized error handling
-│   └── types.ts           # Generic API types
+├── endpoints.ts           # API endpoint constants (centralized)
+├── api/                   # Core API infrastructure
+│   ├── client.ts         # Axios configuration & HTTP methods
+│   ├── interceptors.ts   # Request/response interceptors
+│   ├── errorHandler.ts   # Centralized error handling
+│   └── types.ts          # Generic API types
 ├── auth/
-│   └── authService.ts     # Authentication business methods
+│   └── authService.ts    # Authentication business methods
 ├── products/
-│   └── productService.ts  # Product business methods
+│   └── productService.ts # Product business methods
 ├── users/
-│   └── userService.ts     # User business methods
+│   └── userService.ts    # User business methods
 └── orders/
-    └── orderService.ts    # Order business methods
+    └── orderService.ts   # Order business methods
 ```
 
 ## Core API Infrastructure
@@ -73,9 +73,9 @@ class ApiClient {
 export const apiClient = new ApiClient();
 ```
 
-### 2. API Endpoints (`services/api/endpoints.ts`)
+### 2. API Endpoints (`services/endpoints.ts`)
 
-Centralized endpoint definitions:
+Centralized endpoint definitions at the services level for easy access by all service modules:
 
 ```typescript
 export const API_ENDPOINTS = {
@@ -158,7 +158,7 @@ export const setupInterceptors = (client: AxiosInstance) => {
 ```typescript
 // src/services/products/productService.ts
 import { apiClient } from '../api/client';
-import { API_ENDPOINTS } from '../api/endpoints';
+import { API_ENDPOINTS } from '../endpoints';
 import { 
   GetProductsRequest, 
   GetProductsResponse,
@@ -250,7 +250,7 @@ export const productService = new ProductService();
 ```typescript
 // src/services/auth/authService.ts
 import { apiClient } from '../api/client';
-import { API_ENDPOINTS } from '../api/endpoints';
+import { API_ENDPOINTS } from '../endpoints';
 import { 
   LoginRequest, 
   LoginResponse, 

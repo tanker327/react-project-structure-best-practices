@@ -101,9 +101,9 @@ src/
 │   └── useLocalStorage.ts
 │
 ├── services/              # Centralized API services
+│   ├── endpoints.ts       # API endpoint constants
 │   ├── api/
 │   │   ├── client.ts      # Axios configuration
-│   │   ├── endpoints.ts   # API endpoints
 │   │   ├── interceptors.ts # Request/response interceptors
 │   │   └── errorHandler.ts # Error handling
 │   ├── auth/
@@ -350,9 +350,9 @@ export const AppEcosystemProvider = ({ children }: { children: React.ReactNode }
 ### Service Structure
 ```
 services/
+├── endpoints.ts            # Endpoint constants (centralized)
 ├── api/
 │   ├── client.ts           # Axios instance
-│   ├── endpoints.ts        # Endpoint constants
 │   ├── interceptors.ts     # Request/response interceptors
 │   ├── errorHandler.ts     # Error handling
 │   └── types.ts            # API types
@@ -398,7 +398,7 @@ export const apiClient = new ApiClient();
 ```typescript
 // src/services/products/productService.ts
 import { apiClient } from '../api/client';
-import { API_ENDPOINTS } from '../api/endpoints';
+import { API_ENDPOINTS } from '../endpoints';
 // Import from centralized locations
 import { GetProductsRequest, GetProductsResponse } from '@/types/products/product.api';
 import { getProductsRequestSchema, getProductsResponseSchema } from '@/schemas/product.schemas';
