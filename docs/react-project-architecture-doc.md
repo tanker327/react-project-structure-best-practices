@@ -28,46 +28,57 @@ src/
 │   └── providers/           # Ecosystem and other providers
 │       └── EcosystemProvider.tsx
 │
-├── pages/                   # Page/Route components
+├── pages/                   # Page/Route components (UI only)
 │   ├── Home/
 │   │   ├── index.tsx
 │   │   ├── Home.styles.ts
 │   │   └── Home.test.tsx
 │   ├── Dashboard/
 │   │   ├── index.tsx
-│   │   ├── components/
-│   │   └── atoms/
+│   │   └── components/      # Page-specific components
+│   │       ├── DashboardHeader.tsx
+│   │       └── DashboardStats.tsx
 │   └── Products/
 │       ├── index.tsx
 │       ├── ProductList.tsx
-│       ├── ProductDetail.tsx
-│       └── atoms/
+│       └── ProductDetail.tsx
 │
-├── features/                # Feature-based modules (UI & state only)
+├── features/                # Feature-based UI modules
 │   ├── auth/
-│   │   ├── components/     # Feature-specific components
-│   │   ├── atoms/          # Feature atoms
-│   │   ├── ions/           # Feature ions (derived state)
-│   │   └── selectors/      # Feature selectors
+│   │   └── components/     # Feature-specific components
+│   │       ├── LoginForm.tsx
+│   │       ├── RegisterForm.tsx
+│   │       └── ForgotPassword.tsx
 │   ├── user/
-│   │   ├── components/
-│   │   ├── atoms/
-│   │   ├── ions/
-│   │   └── selectors/
+│   │   └── components/
+│   │       ├── UserProfile.tsx
+│   │       ├── UserSettings.tsx
+│   │       └── UserAvatar.tsx
 │   └── products/
-│       ├── components/
-│       ├── atoms/
-│       ├── ions/
-│       └── selectors/
+│       └── components/
+│           ├── ProductCard.tsx
+│           ├── ProductGrid.tsx
+│           └── ProductFilters.tsx
 │
-├── atoms/                   # Global atoms
-│   ├── index.ts
-│   ├── uiAtoms.ts
-│   └── notificationAtoms.ts
-│
-├── ions/                    # Global ions (computed/derived atoms)
-│   ├── index.ts
-│   └── appIons.ts
+├── atoms/                   # All state management (atoms, ions, selectors)
+│   ├── index.ts            # Barrel export
+│   ├── auth/
+│   │   ├── authAtoms.ts    # Auth-related atoms
+│   │   ├── authIons.ts     # Auth-derived state
+│   │   └── authSelectors.ts # Auth selectors
+│   ├── products/
+│   │   ├── productsAtoms.ts
+│   │   ├── productsIons.ts
+│   │   ├── cartAtoms.ts
+│   │   └── productsSelectors.ts
+│   ├── user/
+│   │   ├── userAtoms.ts
+│   │   ├── userPreferencesAtoms.ts
+│   │   └── userSelectors.ts
+│   └── ui/
+│       ├── uiAtoms.ts      # UI state (modals, sidebars, etc.)
+│       ├── notificationAtoms.ts
+│       └── themeAtoms.ts
 │
 ├── ecosystem/              # Zedux ecosystem configuration
 │   ├── ecosystem.ts        # Main ecosystem instance
@@ -152,11 +163,12 @@ src/
 
 ### Key Design Principles
 
-1. **Centralized Business Logic**: Services, types, and schemas are centralized for consistency and reusability
-2. **Feature-Based UI Organization**: Features contain only UI components and state management
-3. **Clear Separation of Concerns**: Separate presentation (features), business logic (services), and data contracts (types/schemas)
-4. **Type Safety**: Full TypeScript coverage with runtime validation
-5. **Single Source of Truth**: One place for each type definition, schema, and service
+1. **Centralized Business Logic**: Services, types, schemas, and state management are all centralized
+2. **Pure UI Components**: Pages and features contain only presentation components
+3. **Unified State Management**: All atoms, ions, and selectors in one organized location
+4. **Clear Separation of Concerns**: Presentation (pages/features), state (atoms), business logic (services), and data contracts (types/schemas)
+5. **Single Source of Truth**: One place for each concept - no duplication
+6. **Predictable Structure**: Developers always know where to find and place code
 
 ---
 
@@ -184,48 +196,135 @@ src/
 
 ## State Management with Zedux
 
-### Ecosystem Setup
-```typescript
-// src/ecosystem/ecosystem.ts
-import { createEcosystem } from '@zedux/react';
-import { apiInjector } from './injectors/apiInjector';
+### Centralized Atoms Structure
 
-export const ecosystem = createEcosystem({
-  id: 'app-ecosystem',
-  overrides: [],
-  injectors: [apiInjector],
-});
+All state management is consolidated in the `atoms` folder, organized by domain:
+
+```
+atoms/
+├── auth/
+│   ├── authAtoms.ts        # Core auth atoms
+│   ├── authIons.ts         # Derived auth state
+│   └── authSelectors.ts    # Auth selectors
+├── products/
+│   ├── productsAtoms.ts    # Product list atoms
+│   ├── productsIons.ts     # Filtered/sorted products
+│   ├── cartAtoms.ts        # Shopping cart state
+│   └── productsSelectors.ts # Product selectors
+└── ui/
+    ├── uiAtoms.ts          # UI state atoms
+    └── notificationAtoms.ts # Notification state
 ```
 
-### Atom Pattern
+### Atom Examples
+
+#### Basic Atom
 ```typescript
-// src/features/auth/atoms/authAtoms.ts
+// src/atoms/auth/authAtoms.ts
 import { atom, injectStore, injectEffect } from '@zedux/react';
-import { z } from 'zod';
-import { userSchema } from '../schemas/authSchemas';
+import { authService } from '@/services/auth/authService';
+import { User } from '@/types/auth/auth.types';
 
 export const currentUserAtom = atom('currentUser', () => {
-  const store = injectStore<z.infer<typeof userSchema> | null>(null);
+  const store = injectStore<User | null>(null);
   
   injectEffect(() => {
-    // Side effects here
+    // Load user from localStorage on mount
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      const parsed = JSON.parse(savedUser);
+      store.setState(parsed);
+    }
   }, []);
 
   return store;
 });
+
+export const authStateAtom = atom('authState', () => {
+  const store = injectStore({
+    isAuthenticated: false,
+    isLoading: false,
+    error: null as string | null,
+  });
+
+  const login = async (email: string, password: string) => {
+    store.setState(state => ({ ...state, isLoading: true, error: null }));
+    try {
+      const response = await authService.login({ email, password });
+      store.setState({ isAuthenticated: true, isLoading: false, error: null });
+      ecosystem.getInstance(currentUserAtom).setState(response.user);
+    } catch (error) {
+      store.setState({ 
+        isAuthenticated: false, 
+        isLoading: false, 
+        error: error.message 
+      });
+    }
+  };
+
+  return { store, login };
+});
 ```
 
-### Ion Pattern (Derived State)
+#### Ion (Derived State) in Same Folder
 ```typescript
-// src/features/products/ions/productIons.ts
+// src/atoms/products/productsIons.ts
 import { ion, injectAtomValue } from '@zedux/react';
-import { productsAtom, filtersAtom } from '../atoms/productsAtom';
+import { productsAtom, filtersAtom, sortingAtom } from './productsAtoms';
 
 export const filteredProductsIon = ion('filteredProducts', () => {
   const products = injectAtomValue(productsAtom);
   const filters = injectAtomValue(filtersAtom);
 
-  return products.filter(/* filtering logic */);
+  return products.filter(product => {
+    if (filters.category && product.category !== filters.category) {
+      return false;
+    }
+    if (filters.minPrice && product.price < filters.minPrice) {
+      return false;
+    }
+    return true;
+  });
+});
+
+export const sortedAndFilteredProductsIon = ion('sortedAndFilteredProducts', () => {
+  const filteredProducts = injectAtomValue(filteredProductsIon);
+  const sorting = injectAtomValue(sortingAtom);
+
+  return [...filteredProducts].sort((a, b) => {
+    switch (sorting.field) {
+      case 'price':
+        return sorting.order === 'asc' ? a.price - b.price : b.price - a.price;
+      case 'name':
+        return sorting.order === 'asc' 
+          ? a.name.localeCompare(b.name)
+          : b.name.localeCompare(a.name);
+      default:
+        return 0;
+    }
+  });
+});
+```
+
+#### Selectors in Same Folder
+```typescript
+// src/atoms/products/productsSelectors.ts
+import { selector } from '@zedux/react';
+import { productsAtom, cartAtom } from './productsAtoms';
+
+export const getProductByIdSelector = selector((id: string) => {
+  const products = ecosystem.getInstance(productsAtom).getState();
+  return products.items.find(product => product.id === id);
+});
+
+export const cartTotalSelector = selector(() => {
+  const cart = ecosystem.getInstance(cartAtom).getState();
+  return cart.items.reduce((total, item) => total + (item.price * item.quantity), 0);
+});
+
+export const cartItemCountSelector = selector(() => {
+  const cart = ecosystem.getInstance(cartAtom).getState();
+  return cart.items.reduce((count, item) => count + item.quantity, 0);
 });
 ```
 
@@ -430,67 +529,63 @@ export interface ApiErrorResponse {
 }
 ```
 
-### Feature Implementation Example
+### Component Usage Example
 
-Features now focus solely on UI components and state management, importing types and services from centralized locations:
+Pages and features now import all state from the centralized atoms folder:
 
 ```typescript
-// src/features/products/atoms/productsAtom.ts
-import { atom, injectStore, injectEffect } from '@zedux/react';
-// Import from centralized locations
-import { productService } from '@/services/products/productService';
-import { Product } from '@/types/products/product.types';
-import { productSchema } from '@/schemas/product.schemas';
+// src/pages/Products/index.tsx
+import React from 'react';
+import { useAtomValue } from '@zedux/react';
+// Import from centralized atoms folder
+import { sortedAndFilteredProductsIon } from '@/atoms/products/productsIons';
+import { filtersAtom } from '@/atoms/products/productsAtoms';
+// Import feature components
+import { ProductGrid, ProductFilters } from '@/features/products/components';
 
-export const productsAtom = atom('products', () => {
-  const store = injectStore<{
-    items: Product[];
-    isLoading: boolean;
-    error: string | null;
-  }>({
-    items: [],
-    isLoading: false,
-    error: null,
-  });
+export const ProductsPage = () => {
+  const products = useAtomValue(sortedAndFilteredProductsIon);
+  const [filters, setFilters] = useAtomState(filtersAtom);
 
-  const fetchProducts = async () => {
-    store.setState(state => ({ ...state, isLoading: true }));
-    try {
-      const response = await productService.getProducts();
-      store.setState({
-        items: response.items,
-        isLoading: false,
-        error: null,
-      });
-    } catch (error) {
-      store.setState(state => ({
-        ...state,
-        isLoading: false,
-        error: 'Failed to fetch products',
-      }));
-    }
-  };
-
-  injectEffect(() => {
-    fetchProducts();
-  }, []);
-
-  return { store, fetchProducts };
-});
+  return (
+    <div>
+      <ProductFilters 
+        filters={filters} 
+        onFilterChange={setFilters} 
+      />
+      <ProductGrid products={products} />
+    </div>
+  );
+};
 ```
 
 ```typescript
-// src/features/products/components/ProductList.tsx
-import { useAtomValue } from '@zedux/react';
+// src/features/products/components/ProductCard.tsx
+import React from 'react';
+import { useAtomState } from '@zedux/react';
+// Import atoms from centralized location
+import { cartAtom } from '@/atoms/products/cartAtoms';
 // Import types from centralized location
 import { Product } from '@/types/products/product.types';
-import { productsAtom } from '../atoms/productsAtom';
 
-export const ProductList = () => {
-  const { store } = useAtomValue(productsAtom);
-  const { items, isLoading, error } = store.getState();
+interface ProductCardProps {
+  product: Product;
+}
 
-  // Component implementation
+export const ProductCard = ({ product }: ProductCardProps) => {
+  const [cart, cartActions] = useAtomState(cartAtom);
+
+  const handleAddToCart = () => {
+    cartActions.addItem(product);
+  };
+
+  return (
+    <div className="product-card">
+      <h3>{product.name}</h3>
+      <p>${product.price}</p>
+      <button onClick={handleAddToCart}>Add to Cart</button>
+    </div>
+  );
 };
 ```
 
@@ -635,12 +730,18 @@ try {
 ## Conclusion
 
 This architecture provides:
-- **Centralized Business Logic**: Services, types, and schemas in one place prevents duplication
-- **Clear Separation**: UI/state in features, business logic in services, data contracts in types/schemas
-- **Scalability**: Easy to grow by adding new services, types, and features independently
-- **Maintainability**: Single source of truth for each concept
-- **Type Safety**: Full TypeScript and runtime validation with Zod
-- **Developer Experience**: Clear, predictable structure where everything has its place
-- **Testability**: Centralized services and types are easier to mock and test
+- **Complete Centralization**: All business logic (services, types, schemas, atoms) in dedicated folders
+- **Pure UI Components**: Pages and features contain only presentation logic
+- **Clear Mental Model**: State in atoms/, logic in services/, contracts in types/schemas/
+- **No Duplication**: Each concept defined once, used everywhere
+- **Scalability**: Easy to add new atoms, services, or components independently
+- **Maintainability**: Single source of truth for every aspect of the application
+- **Developer Experience**: Predictable structure - always know where code belongs
+- **Testability**: Centralized pieces are easier to mock and test in isolation
 
-The combination of Zedux for state management, centralized services/types/schemas, and feature-based UI organization creates a robust, maintainable foundation for large-scale React applications.
+The combination of:
+- **Zedux** atoms/ions/selectors in a unified `atoms` folder
+- **Centralized** services, types, and schemas
+- **Pure UI** components in pages and features
+
+Creates a clean, scalable, and maintainable architecture that grows well with your application and team.
