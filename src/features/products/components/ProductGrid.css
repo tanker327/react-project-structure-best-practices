@@ -1,0 +1,29 @@
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+  margin-top: 24px;
+}
+
+.product-grid__loading {
+  text-align: center;
+  padding: 64px 24px;
+  color: #6b7280;
+}
+
+.product-grid__empty {
+  text-align: center;
+  padding: 64px 24px;
+  color: #6b7280;
+}
+
+.product-grid__empty h3 {
+  font-size: 18px;
+  margin: 0 0 8px 0;
+  color: #374151;
+}
+
+.product-grid__empty p {
+  font-size: 14px;
+  margin: 0;
+}
