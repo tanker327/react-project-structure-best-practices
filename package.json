@@ -4,12 +4,17 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview",
+    "dev": "vite --config config/vite.config.ts",
+    "build": "tsc && vite build --config config/vite.config.ts",
+    "preview": "vite preview --config config/vite.config.ts",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "test": "vitest",
     "test:ui": "vitest --ui",
+    "test:integration": "node tests/integration/test-integration.js",
+    "test:error-handling": "node tests/integration/test-error-handling.js",
+    "test:decorators": "node tests/integration/test-decorators.js",
+    "test:refactored-errors": "node tests/integration/test-refactored-errors.js",
+    "test:all": "npm run test:integration && npm run test:error-handling && npm run test:decorators",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
