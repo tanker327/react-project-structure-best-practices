@@ -48,7 +48,8 @@ const productsHandlers = {
         let result = [...products];
         
         // Apply filters if provided
-        const { category, isActive, minPrice, maxPrice, search } = req.query;
+        const { category, isActive, minPrice, maxPrice, search, sortBy, sortDirection } = req.query;
+        console.debug(`Query params:`, { category, isActive, minPrice, maxPrice, search, sortBy, sortDirection });
         
         if (category) {
             result = result.filter(p => p.category.toLowerCase() === category.toLowerCase());
@@ -80,6 +81,28 @@ const productsHandlers = {
                 p.description?.toLowerCase().includes(searchLower)
             );
             console.debug(`Searching for: ${search}`);
+        }
+        
+        // Apply sorting if provided
+        if (sortBy) {
+            const direction = sortDirection === 'desc' ? -1 : 1;
+            result.sort((a, b) => {
+                let aVal, bVal;
+                
+                switch (sortBy) {
+                    case 'name':
+                        aVal = a.name.toLowerCase();
+                        bVal = b.name.toLowerCase();
+                        return aVal.localeCompare(bVal) * direction;
+                    case 'price':
+                        return (a.price - b.price) * direction;
+                    case 'createdAt':
+                        return (new Date(a.createdAt) - new Date(b.createdAt)) * direction;
+                    default:
+                        return 0;
+                }
+            });
+            console.debug(`Sorting by ${sortBy} ${sortDirection || 'asc'}`);
         }
         
         console.info(`Returning ${result.length} products`);

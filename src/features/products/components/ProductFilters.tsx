@@ -10,22 +10,32 @@ export const ProductFilters = () => {
 
   const handleSearchChange = (value: string) => {
     setFilters(state => ({ ...state, searchQuery: value }));
-    loadProducts({ search: value, category: filters.categories.join(',') });
+    // Use the new value directly, not the stale state
+    loadProducts({ 
+      search: value, 
+      category: filters.categories.length > 0 ? filters.categories[0] : undefined 
+    });
   };
 
   const handleSortChange = (value: string) => {
     const [field, direction] = value.split('-') as ['name' | 'price' | 'createdAt', 'asc' | 'desc'];
     setSorting({ field, direction });
-    // Reload products with new sorting
-    loadProducts({ search: filters.searchQuery });
+    // Now sorting is implemented in the backend!
+    loadProducts({ 
+      search: filters.searchQuery,
+      category: filters.categories.length > 0 ? filters.categories[0] : undefined,
+      sortBy: field,
+      sortDirection: direction
+    });
   };
 
   const handleCategoryChange = (value: string) => {
     const updatedCategories = value ? [value] : [];
     setFilters(state => ({ ...state, categories: updatedCategories }));
+    // Use the new value directly
     loadProducts({ 
       search: filters.searchQuery, 
-      category: value 
+      category: value || undefined
     });
   };
 

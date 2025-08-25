@@ -11,6 +11,8 @@ const getProductsRequestSchema = z.object({
   minPrice: z.number().optional(),
   maxPrice: z.number().optional(),
   search: z.string().optional(),
+  sortBy: z.enum(['name', 'price', 'createdAt']).optional(),
+  sortDirection: z.enum(['asc', 'desc']).optional(),
 });
 
 const getProductsResponseSchema = z.object({

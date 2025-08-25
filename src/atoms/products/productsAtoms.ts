@@ -12,11 +12,13 @@ export const productsAtom = atom('products', () => {
   });
 
   const loadProducts = async (filters?: any) => {
+    console.log('Loading products with filters:', filters);
     store.setState(state => ({ ...state, loading: true, error: null }));
     
     try {
       const products = await productService.getProducts(filters);
       const categories = await productService.getCategories();
+      console.log(`Loaded ${products.length} products`);
       
       store.setState({
         items: products,
