@@ -19,6 +19,20 @@ const generateId = () => {
 const getCurrentTimestamp = () => new Date().toISOString();
 
 const setupMiddleware = (app) => {
+    // Enable CORS for development
+    app.use((req, res, next) => {
+        res.header('Access-Control-Allow-Origin', 'http://localhost:3000');
+        res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+        res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-request-id, X-Request-Id');
+        res.header('Access-Control-Allow-Credentials', 'true');
+        
+        if (req.method === 'OPTIONS') {
+            return res.sendStatus(200);
+        }
+        
+        next();
+    });
+    
     app.use(bodyParser.urlencoded({ extended: false }));
     app.use(bodyParser.json());
     app.use(cookieParser());

@@ -7,14 +7,18 @@ import './ProductGrid.css';
 export const ProductGrid = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadProducts = async () => {
       try {
-        const data = await productService.getProducts({ limit: 8 });
+        setLoading(true);
+        setError(null);
+        const data = await productService.getProducts();
         setProducts(data);
-      } catch (error) {
-        console.error('Failed to load products:', error);
+      } catch (err) {
+        console.error('Failed to load products:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load products');
       } finally {
         setLoading(false);
       }
@@ -27,6 +31,16 @@ export const ProductGrid = () => {
     return (
       <div className="product-grid__loading">
         <p>Loading products...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="product-grid__error">
+        <h3>Error loading products</h3>
+        <p>{error}</p>
+        <p>Make sure the mock server is running on port 3001</p>
       </div>
     );
   }

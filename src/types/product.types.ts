@@ -9,10 +9,11 @@ export type ProductFilter = {
   categories: string[];
   priceRange: { min: number; max: number };
   inStockOnly: boolean;
+  isActiveOnly?: boolean;
 };
 
 export type ProductSort = {
-  field: 'title' | 'price' | 'rating.rate';
+  field: 'name' | 'price' | 'createdAt';
   direction: 'asc' | 'desc';
 };
 

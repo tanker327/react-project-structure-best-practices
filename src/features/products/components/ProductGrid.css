@@ -27,3 +27,20 @@
   font-size: 14px;
   margin: 0;
 }
+
+.product-grid__error {
+  text-align: center;
+  padding: 64px 24px;
+  color: #dc2626;
+}
+
+.product-grid__error h3 {
+  font-size: 18px;
+  margin: 0 0 8px 0;
+  color: #dc2626;
+}
+
+.product-grid__error p {
+  font-size: 14px;
+  margin: 0 0 4px 0;
+}

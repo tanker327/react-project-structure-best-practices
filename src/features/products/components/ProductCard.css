@@ -75,6 +75,13 @@
   color: #6b7280;
 }
 
+.product-card__inventory {
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
 .product-card__button {
   margin-top: auto;
 }

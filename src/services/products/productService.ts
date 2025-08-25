@@ -5,20 +5,29 @@ import { productSchema } from '@/schemas/product.schemas';
 import { Product } from '@/types/product.types';
 
 const getProductsRequestSchema = z.object({
-  limit: z.number().optional(),
-  sort: z.enum(['asc', 'desc']).optional(),
+  category: z.string().optional(),
+  isActive: z.boolean().optional(),
+  minPrice: z.number().optional(),
+  maxPrice: z.number().optional(),
+  search: z.string().optional(),
 });
 
-const getProductsResponseSchema = z.array(productSchema);
+const getProductsResponseSchema = z.object({
+  items: z.array(productSchema),
+  total: z.number(),
+  timestamp: z.string(),
+});
 
 const getCategoriesResponseSchema = z.array(z.string());
 
 type GetProductsRequest = z.infer<typeof getProductsRequestSchema>;
 type GetProductsResponse = z.infer<typeof getProductsResponseSchema>;
+type CreateProductRequest = Omit<Product, 'id' | 'createdAt' | 'updatedAt'>;
+type UpdateProductRequest = Partial<Omit<Product, 'id' | 'createdAt' | 'updatedAt'>>;
 type GetCategoriesResponse = z.infer<typeof getCategoriesResponseSchema>;
 
 class ProductService {
-  async getProducts(filters?: GetProductsRequest): Promise<GetProductsResponse> {
+  async getProducts(filters?: GetProductsRequest): Promise<Product[]> {
     const validatedFilters = filters 
       ? getProductsRequestSchema.parse(filters) 
       : undefined;
@@ -28,10 +37,11 @@ class ProductService {
       { params: validatedFilters }
     );
 
-    return getProductsResponseSchema.parse(response);
+    const validatedResponse = getProductsResponseSchema.parse(response);
+    return validatedResponse.items;
   }
 
-  async getProductById(id: number): Promise<Product> {
+  async getProductById(id: string): Promise<Product> {
     const response = await apiClient.get<Product>(
       API_ENDPOINTS.PRODUCTS.DETAIL(id)
     );
@@ -40,16 +50,38 @@ class ProductService {
   }
 
   async getCategories(): Promise<GetCategoriesResponse> {
-    const response = await apiClient.get<GetCategoriesResponse>(
-      API_ENDPOINTS.PRODUCTS.CATEGORIES
-    );
-
-    return getCategoriesResponseSchema.parse(response);
+    // Extract unique categories from products
+    const products = await this.getProducts();
+    const categories = [...new Set(products.map(p => p.category))];
+    return categories;
   }
 
-  async getProductsByCategory(category: string, limit?: number): Promise<Product[]> {
-    const response = await this.getProducts({ limit });
-    return response.filter(product => product.category === category);
+  async createProduct(product: CreateProductRequest): Promise<Product> {
+    const response = await apiClient.post<Product>(
+      API_ENDPOINTS.PRODUCTS.CREATE,
+      product
+    );
+    return productSchema.parse(response);
+  }
+
+  async updateProduct(id: string, updates: UpdateProductRequest): Promise<Product> {
+    const response = await apiClient.patch<Product>(
+      API_ENDPOINTS.PRODUCTS.UPDATE(id),
+      updates
+    );
+    return productSchema.parse(response);
+  }
+
+  async deleteProduct(id: string): Promise<void> {
+    await apiClient.delete(API_ENDPOINTS.PRODUCTS.DELETE(id));
+  }
+
+  async getProductsByCategory(category: string): Promise<Product[]> {
+    return this.getProducts({ category });
+  }
+
+  async searchProducts(search: string): Promise<Product[]> {
+    return this.getProducts({ search });
   }
 }
 

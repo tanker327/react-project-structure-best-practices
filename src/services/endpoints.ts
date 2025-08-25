@@ -4,8 +4,12 @@ export const API_ENDPOINTS = {
   },
   PRODUCTS: {
     LIST: '/products',
-    DETAIL: (id: number) => `/products/${id}`,
-    CATEGORIES: '/products/categories',
+    DETAIL: (id: string) => `/products/${id}`,
+    CREATE: '/products',
+    UPDATE: (id: string) => `/products/${id}`,
+    DELETE: (id: string) => `/products/${id}`,
+    BULK: '/products/bulk',
+    RESET: '/products/reset',
   },
   USERS: {
     LIST: '/users',
