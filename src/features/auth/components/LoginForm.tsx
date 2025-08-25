@@ -1,27 +1,23 @@
 import { useState } from 'react';
+import { useAtomValue } from '@zedux/react';
+import { authStateAtom } from '@/atoms/auth/authAtoms';
 import { Button, Input, Card } from '@/components/common';
 import './LoginForm.css';
 
 export const LoginForm = () => {
   const [username, setUsername] = useState('mor_2314');
   const [password, setPassword] = useState('83r5^_');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { store, login } = useAtomValue(authStateAtom);
+  const { isLoading, error } = store.getState();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
     
     try {
-      console.log('Demo login:', { username, password });
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await login({ username, password });
       alert('Login successful! (This is a demo)');
-    } catch (error: any) {
-      setError('Login failed');
-    } finally {
-      setLoading(false);
+    } catch (err) {
+      // Error is already handled by the atom
     }
   };
 
@@ -59,7 +55,7 @@ export const LoginForm = () => {
 
         <Button
           type="submit"
-          loading={loading}
+          loading={isLoading}
           fullWidth
           size="large"
         >

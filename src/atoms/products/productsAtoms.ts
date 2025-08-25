@@ -1,6 +1,7 @@
 import { atom, injectStore, injectEffect } from '@zedux/react';
 import { productService } from '@/services/products/productService';
 import { Product } from '@/types/product.types';
+import { ApiError } from '@/services/api/errorHandler';
 
 export const productsAtom = atom('products', () => {
   const store = injectStore({
@@ -23,12 +24,31 @@ export const productsAtom = atom('products', () => {
         loading: false,
         error: null,
       });
-    } catch (error) {
-      console.error('Failed to load products:', error);
+    } catch (err) {
+      console.error('Failed to load products:', err);
+      
+      let errorMessage = 'Failed to load products';
+      
+      if (err instanceof ApiError) {
+        // Handle different types of API errors
+        switch (err.code) {
+          case 'NETWORK_ERROR':
+            errorMessage = 'Network error. Please check your connection and ensure the mock server is running on port 3001.';
+            break;
+          case 'VALIDATION_ERROR':
+            errorMessage = 'Invalid data received from server. Please try again.';
+            break;
+          default:
+            errorMessage = `Error ${err.statusCode}: ${err.message}`;
+        }
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      
       store.setState(state => ({
         ...state,
         loading: false,
-        error: error instanceof Error ? error.message : 'Failed to load products',
+        error: errorMessage,
       }));
     }
   };
@@ -38,7 +58,7 @@ export const productsAtom = atom('products', () => {
     loadProducts();
   }, []);
 
-  return store;
+  return { store, loadProducts };
 });
 
 export const filtersAtom = atom('productFilters', () => {

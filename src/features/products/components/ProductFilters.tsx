@@ -1,37 +1,50 @@
-import { useState } from 'react';
+import { useAtomState } from '@zedux/react';
+import { filtersAtom, sortingAtom, productsAtom } from '@/atoms/products/productsAtoms';
 import { Input, Button } from '@/components/common';
 import './ProductFilters.css';
 
 export const ProductFilters = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState('name-asc');
-  const [selectedCategory, setSelectedCategory] = useState('');
+  const [filters, setFilters] = useAtomState(filtersAtom);
+  const [sorting, setSorting] = useAtomState(sortingAtom);
+  const [productsData] = useAtomState(productsAtom);
   
-  // Mock categories for demo
-  const categories = ['Electronics', 'Furniture', 'Sports & Outdoors', 'Home & Kitchen'];
+  const { categories } = productsData.store.getState();
+  const { loadProducts } = productsData;
 
   const handleSearchChange = (value: string) => {
-    setSearchQuery(value);
-    // In real app, would trigger product filtering
-    console.log('Search:', value);
+    setFilters(state => ({ ...state, searchQuery: value }));
+    loadProducts({ search: value, category: filters.categories.join(',') });
   };
 
   const handleSortChange = (value: string) => {
-    setSortBy(value);
-    // In real app, would trigger product sorting
-    console.log('Sort:', value);
+    const [field, direction] = value.split('-') as ['name' | 'price' | 'createdAt', 'asc' | 'desc'];
+    setSorting({ field, direction });
+    // Reload products with new sorting
+    loadProducts({ search: filters.searchQuery });
   };
 
   const handleCategoryChange = (value: string) => {
-    setSelectedCategory(value);
-    // In real app, would trigger product filtering
-    console.log('Category:', value);
+    const updatedCategories = value ? [value] : [];
+    setFilters(state => ({ ...state, categories: updatedCategories }));
+    loadProducts({ 
+      search: filters.searchQuery, 
+      category: value 
+    });
   };
 
   const handleClearFilters = () => {
-    setSearchQuery('');
-    setSortBy('name-asc');
-    setSelectedCategory('');
+    setFilters({
+      searchQuery: '',
+      categories: [],
+      priceRange: { min: 0, max: 1000 },
+      inStockOnly: false,
+      isActiveOnly: true,
+    });
+    setSorting({
+      field: 'name',
+      direction: 'asc',
+    });
+    loadProducts(); // Reload without filters
   };
 
   return (
@@ -40,13 +53,13 @@ export const ProductFilters = () => {
         <Input
           type="text"
           placeholder="Search products..."
-          value={searchQuery}
+          value={filters.searchQuery}
           onChange={(e) => handleSearchChange(e.target.value)}
           className="product-filters__search"
         />
 
         <select
-          value={sortBy}
+          value={`${sorting.field}-${sorting.direction}`}
           onChange={(e) => handleSortChange(e.target.value)}
           className="product-filters__sort"
         >
@@ -60,7 +73,7 @@ export const ProductFilters = () => {
 
         <select
           className="product-filters__category"
-          value={selectedCategory}
+          value={filters.categories[0] || ''}
           onChange={(e) => handleCategoryChange(e.target.value)}
         >
           <option value="">All Categories</option>

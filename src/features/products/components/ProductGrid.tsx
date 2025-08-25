@@ -1,47 +1,12 @@
-import { useState, useEffect } from 'react';
-import { productService } from '@/services/products/productService';
-import { Product } from '@/types/product.types';
-import { ApiError } from '@/services/api/errorHandler';
+import { useAtomValue } from '@zedux/react';
+import { productsAtom } from '@/atoms/products/productsAtoms';
 import { ProductCard } from './ProductCard';
+import { Product } from '@/types/product.types';
 import './ProductGrid.css';
 
 export const ProductGrid = () => {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const loadProducts = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await productService.getProducts();
-        setProducts(data);
-      } catch (err) {
-        console.error('Failed to load products:', err);
-        
-        if (err instanceof ApiError) {
-          // Handle different types of API errors
-          switch (err.code) {
-            case 'NETWORK_ERROR':
-              setError('Network error. Please check your connection and ensure the mock server is running on port 3001.');
-              break;
-            case 'VALIDATION_ERROR':
-              setError('Invalid data received from server. Please try again.');
-              break;
-            default:
-              setError(`Error ${err.statusCode}: ${err.message}`);
-          }
-        } else {
-          setError(err instanceof Error ? err.message : 'Failed to load products');
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadProducts();
-  }, []);
+  const { store } = useAtomValue(productsAtom);
+  const { items: products, loading, error } = store.getState();
 
   if (loading) {
     return (
@@ -72,7 +37,7 @@ export const ProductGrid = () => {
 
   return (
     <div className="product-grid">
-      {products.map(product => (
+      {products.map((product: Product) => (
         <ProductCard key={product.id} product={product} />
       ))}
     </div>
