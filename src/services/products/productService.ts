@@ -2,7 +2,8 @@ import { z } from 'zod';
 import { apiClient } from '../api/client';
 import { API_ENDPOINTS } from '../endpoints';
 import { productSchema } from '@/schemas/product.schemas';
-import { Product } from '@/types/product.types';
+import type { Product } from '@/types/product.types';
+import { HandleError, ServiceErrorHandler } from '../decorators/errorHandler.decorator';
 
 const getProductsRequestSchema = z.object({
   category: z.string().optional(),
@@ -26,7 +27,9 @@ type CreateProductRequest = Omit<Product, 'id' | 'createdAt' | 'updatedAt'>;
 type UpdateProductRequest = Partial<Omit<Product, 'id' | 'createdAt' | 'updatedAt'>>;
 type GetCategoriesResponse = z.infer<typeof getCategoriesResponseSchema>;
 
+@ServiceErrorHandler('ProductService')
 class ProductService {
+  @HandleError()
   async getProducts(filters?: GetProductsRequest): Promise<Product[]> {
     const validatedFilters = filters 
       ? getProductsRequestSchema.parse(filters) 
@@ -41,14 +44,15 @@ class ProductService {
     return validatedResponse.items;
   }
 
+  @HandleError()
   async getProductById(id: string): Promise<Product> {
     const response = await apiClient.get<Product>(
       API_ENDPOINTS.PRODUCTS.DETAIL(id)
     );
-
     return productSchema.parse(response);
   }
 
+  @HandleError()
   async getCategories(): Promise<GetCategoriesResponse> {
     // Extract unique categories from products
     const products = await this.getProducts();
@@ -56,6 +60,7 @@ class ProductService {
     return categories;
   }
 
+  @HandleError()
   async createProduct(product: CreateProductRequest): Promise<Product> {
     const response = await apiClient.post<Product>(
       API_ENDPOINTS.PRODUCTS.CREATE,
@@ -64,6 +69,7 @@ class ProductService {
     return productSchema.parse(response);
   }
 
+  @HandleError()
   async updateProduct(id: string, updates: UpdateProductRequest): Promise<Product> {
     const response = await apiClient.patch<Product>(
       API_ENDPOINTS.PRODUCTS.UPDATE(id),
@@ -72,14 +78,17 @@ class ProductService {
     return productSchema.parse(response);
   }
 
+  @HandleError()
   async deleteProduct(id: string): Promise<void> {
     await apiClient.delete(API_ENDPOINTS.PRODUCTS.DELETE(id));
   }
 
+  @HandleError()
   async getProductsByCategory(category: string): Promise<Product[]> {
     return this.getProducts({ category });
   }
 
+  @HandleError()
   async searchProducts(search: string): Promise<Product[]> {
     return this.getProducts({ search });
   }

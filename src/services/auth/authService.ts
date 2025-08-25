@@ -3,7 +3,8 @@ import { apiClient } from '../api/client';
 import { API_ENDPOINTS } from '../endpoints';
 import { setAuthToken } from '../api/interceptors';
 import { loginRequestSchema } from '@/schemas/auth.schemas';
-import { LoginRequest } from '@/types/auth.types';
+import type { LoginRequest } from '@/types/auth.types';
+import { HandleError, ServiceErrorHandler } from '../decorators/errorHandler.decorator';
 
 const loginResponseSchema = z.object({
   token: z.string(),
@@ -11,7 +12,9 @@ const loginResponseSchema = z.object({
 
 type LoginResponse = z.infer<typeof loginResponseSchema>;
 
+@ServiceErrorHandler('AuthService')
 class AuthService {
+  @HandleError()
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     const validatedCredentials = loginRequestSchema.parse(credentials);
     
@@ -28,6 +31,7 @@ class AuthService {
     return validatedResponse;
   }
 
+  @HandleError()
   async logout(): Promise<void> {
     this.clearToken();
     setAuthToken(null);
