@@ -6,10 +6,7 @@ import './ProductFilters.css';
 export const ProductFilters = () => {
   const [filters, setFilters] = useAtomState(filtersAtom);
   const [sorting, setSorting] = useAtomState(sortingAtom);
-  const [productsData] = useAtomState(productsAtom);
-  
-  const { categories } = productsData.store.getState();
-  const { loadProducts } = productsData;
+  const [{ categories }, { loadProducts }] = useAtomState(productsAtom);
 
   const handleSearchChange = (value: string) => {
     setFilters(state => ({ ...state, searchQuery: value }));

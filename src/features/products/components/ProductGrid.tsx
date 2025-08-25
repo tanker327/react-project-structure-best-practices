@@ -1,12 +1,11 @@
-import { useAtomValue } from '@zedux/react';
+import { useAtomState } from '@zedux/react';
 import { productsAtom } from '@/atoms/products/productsAtoms';
 import { ProductCard } from './ProductCard';
 import { Product } from '@/types/product.types';
 import './ProductGrid.css';
 
 export const ProductGrid = () => {
-  const { store } = useAtomValue(productsAtom);
-  const { items: products, loading, error } = store.getState();
+  const [{ items: products, loading, error }] = useAtomState(productsAtom);
 
   if (loading) {
     return (

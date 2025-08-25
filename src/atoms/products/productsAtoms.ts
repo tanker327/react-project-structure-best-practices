@@ -1,4 +1,4 @@
-import { atom, injectStore, injectEffect } from '@zedux/react';
+import { atom, injectStore, injectEffect, api } from '@zedux/react';
 import { productService } from '@/services/products/productService';
 import { Product } from '@/types/product.types';
 import { ApiError } from '@/services/api/errorHandler';
@@ -58,7 +58,9 @@ export const productsAtom = atom('products', () => {
     loadProducts();
   }, []);
 
-  return { store, loadProducts };
+  return api(store).setExports({
+    loadProducts,
+  });
 });
 
 export const filtersAtom = atom('productFilters', () => {

@@ -1,4 +1,4 @@
-import { atom, injectStore } from '@zedux/react';
+import { atom, injectStore, api } from '@zedux/react';
 import { authService } from '@/services/auth/authService';
 import type { LoginRequest } from '@/types/auth.types';
 
@@ -53,5 +53,9 @@ export const authStateAtom = atom('authState', () => {
     store.setState(state => ({ ...state, error: null }));
   };
 
-  return { store, login, logout, clearError };
+  return api(store).setExports({
+    login,
+    logout,
+    clearError,
+  });
 });

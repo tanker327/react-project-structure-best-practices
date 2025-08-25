@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAtomValue } from '@zedux/react';
+import { useAtomState } from '@zedux/react';
 import { authStateAtom } from '@/atoms/auth/authAtoms';
 import { Button, Input, Card } from '@/components/common';
 import './LoginForm.css';
@@ -7,8 +7,7 @@ import './LoginForm.css';
 export const LoginForm = () => {
   const [username, setUsername] = useState('mor_2314');
   const [password, setPassword] = useState('83r5^_');
-  const { store, login } = useAtomValue(authStateAtom);
-  const { isLoading, error } = store.getState();
+  const [{ isLoading, error }, { login }] = useAtomState(authStateAtom);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
