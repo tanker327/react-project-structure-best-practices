@@ -1,11 +1,12 @@
 import React from 'react';
+import type { PaddingVariant, ShadowVariant } from '@/types/common.types';
 import './Card.css';
 
 interface CardProps {
   children: React.ReactNode;
   className?: string;
-  padding?: 'none' | 'small' | 'medium' | 'large';
-  shadow?: 'none' | 'small' | 'medium' | 'large';
+  padding?: PaddingVariant;
+  shadow?: ShadowVariant;
 }
 
 export const Card = ({

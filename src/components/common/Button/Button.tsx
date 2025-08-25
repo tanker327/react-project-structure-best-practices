@@ -1,10 +1,11 @@
 import React from 'react';
+import type { ButtonVariant, SizeVariant } from '@/types/common.types';
 import './Button.css';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
-  variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
-  size?: 'small' | 'medium' | 'large';
+  variant?: ButtonVariant;
+  size?: SizeVariant;
   loading?: boolean;
   fullWidth?: boolean;
 }

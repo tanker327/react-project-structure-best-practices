@@ -1,18 +1,19 @@
-import { atom, injectStore } from '@zedux/react';
+import { atom, injectStore, api } from '@zedux/react';
+import type { ThemeVariant, NotificationType } from '@/types/common.types';
 
 export const themeAtom = atom('theme', () => {
-  const store = injectStore<'light' | 'dark' | 'auto'>('light');
+  const store = injectStore<ThemeVariant>('light');
   return store;
 });
 
 export const notificationAtom = atom('notification', () => {
   const store = injectStore<{
     message: string;
-    type: 'success' | 'error' | 'warning' | 'info';
+    type: NotificationType;
     isVisible: boolean;
   } | null>(null);
 
-  const showNotification = (message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info') => {
+  const showNotification = (message: string, type: NotificationType = 'info') => {
     store.setState({
       message,
       type,
@@ -28,7 +29,10 @@ export const notificationAtom = atom('notification', () => {
     store.setState(null);
   };
 
-  return { store, showNotification, hideNotification };
+  return api(store).setExports({
+    showNotification,
+    hideNotification,
+  });
 });
 
 export const sidebarAtom = atom('sidebar', () => {
@@ -51,5 +55,8 @@ export const sidebarAtom = atom('sidebar', () => {
     });
   };
 
-  return { store, openSidebar, closeSidebar };
+  return api(store).setExports({
+    openSidebar,
+    closeSidebar,
+  });
 });
